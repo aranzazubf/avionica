@@ -10,12 +10,15 @@ MainWindow::MainWindow(QWidget *parent) :
 ui->label_pic->setPixmap(pix);
 viewer = new Viewer();
 video = new VideoWidget();
+rec= new Reconstruction();
 
 
 connect(ui->lab, SIGNAL(clicked()), this, SLOT(openLab()));
 
 
 connect(ui->video, SIGNAL(clicked()), this, SLOT(openVideo()));
+
+connect(ui->photo, SIGNAL(clicked()), this, SLOT(openRec()));
 }
 void MainWindow::openLab()
 {
@@ -32,6 +35,15 @@ void MainWindow::openVideo()
    // Be sure to destroy you window somewhere
    video->show();
    video->setPartner(this);
+   this->hide();
+   // ...
+}
+void MainWindow::openRec()
+{
+
+   // Be sure to destroy you window somewhere
+   rec->show();
+   rec->setPartner(this);
    this->hide();
    // ...
 }

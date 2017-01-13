@@ -1,5 +1,6 @@
-#ifndef VIEWER_H
-#define VIEWER_H
+#ifndef RECONSTRUCTION_H
+#define RECONSTRUCTION_H
+
 
 /*******Boost*****/
 #include <boost/math/special_functions/round.hpp>
@@ -53,89 +54,53 @@
 /**Clases propias*/
 #include "interactor_style_actor.h"
 
-
 typedef pcl::PointXYZRGBA PointT;
 typedef pcl::PointCloud<PointT> PointCloudT;
 typedef pcl::PointXYZI PointI;
 typedef pcl::PointXYZ PointB;
 typedef pcl::PointCloud<PointB> PointCloudB;
 typedef pcl::PointCloud<PointI> PointCloudI;
-typedef boost::unordered::unordered_map<std::string, vtkSmartPointer<vtkProp>> ShapeActorMap;
-typedef boost::shared_ptr<ShapeActorMap> ShapeActorMapPtr;
-typedef pcl::PlanarPolygon<PointT> Planar;
 namespace Ui {
-class Viewer;
+class Reconstruction;
 }
 
-class Viewer : public QWidget
+class Reconstruction : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Viewer(QWidget *parent = 0);
-    ~Viewer();
-void saveScreenshot();
-void addPolygonPlane(PointT p1,PointT p2,PointT p3, PointT p4,pcl::ModelCoefficients::Ptr plane_1, int v );
-void updateShapePosePlanarPolygon(Eigen::Affine3f translation, std::string id);
-double distanceToPlane(pcl::ModelCoefficients coefficients, PointCloudT::iterator point);
-    void fVoxelGrid(int value);
-pcl::ModelCoefficients getTranslationCoefficients( std::string id);
-void setPartner(QWidget* partner);
+    void interactorInit();
+    void saveScreenshot();
+       void fVoxelGrid(int value);
+       void setPartner(QWidget * partner);
+    explicit Reconstruction(QWidget *parent = 0);
+    ~Reconstruction();
+
 private:
-    Ui::Viewer *ui;
- QWidget * mPartner;
+    Ui::Reconstruction *ui;
+    QWidget* mPartner;
 protected:
-    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer_;
-    vtkSmartPointer<pcl::visualization::PCLVisualizerInteractorStyle> interactor_;
-    Planar::Ptr plane_;
-    PointCloudT::Ptr cloud_;
-    PointCloudT::Ptr cloud_2D;
-    PointT p1,p2;
-    PointT m_registration_points[2];
-    QPixmap originalPixmap;
-    pcl::ModelCoefficients::Ptr plane_1;
-    int text_id=0;
-    int line_id=0;
-    int marker_id=0;
-    int mesh_id=0;
     int filtering_axis_;
     int color_mode_;
-    int number_points;
-    int plane_initvalue=0;
-
-    double origin=0.0;
-    double minx,maxx,miny,maxy,minz,maxz;
-int v1=0;
-int v2=1;
-int coordinate;
-void boundariesCloud();
+    int v1=0;
+       int nclouds=0;
+     PointCloudT::Ptr cloud_;
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer_;
+    vtkSmartPointer<pcl::visualization::PCLVisualizerInteractorStyle> interactor_;
+    QPixmap originalPixmap;
     void  colorCloudDistances ();
     void fillCloud();
-    void mouseEventOccurred (const pcl::visualization::MouseEvent& event, void* viewer_void);
-    void keyBoardEventOccurred (const pcl::visualization::KeyboardEvent &event, void* viewer_void);
-    void pickEventLine (const pcl::visualization::PointPickingEvent &event, void* viewer_void);
-    void area_picking_callback (const pcl::visualization::AreaPickingEvent &event, void*);
-    void interactorInit();
-    void show2ViewPort();
+    void showCloud();
+    void connections();
 public slots:
-    void showHome();
+        void showHome();
     void shootScreen();
-    void saveFileButtonPressed ();
+       void saveFileButtonPressed ();
     void loadFileButtonPressed ();
-    void addLine();
-
-    void crossSectionX();
-    void crossSectionY();
-    void crossSectionZ();
-    void deleteDistances();
     void showFullScreen();
-
-//   void loadInteractorCamera(bool checked);
-//    void loadInteractorActor(bool checked);
-    void load2D();
-
-void translatePlane(int value);
+    void loadInteractorCamera();
+    void loadInteractorActor();
 
 };
 
-#endif // VIEWER_H
+#endif // RECONSTRUCTION_H

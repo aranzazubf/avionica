@@ -17,17 +17,20 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     viewer.cpp \
     interactor_style_actor.cpp \
-    videowidget.cpp
+    videowidget.cpp \
+    reconstruction.cpp
 
 HEADERS  += mainwindow.h \
     viewer.h \
     interactor_style_actor.h \
     ui_viewer.h \
-    videowidget.h
+    videowidget.h \
+    reconstruction.h
 
 FORMS    += mainwindow.ui \
     viewer.ui \
-    videowidget.ui
+    videowidget.ui \
+    reconstruction.ui
 
 DISTFILES += \
     CMakeLists.txt

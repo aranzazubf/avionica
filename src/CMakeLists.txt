@@ -16,9 +16,9 @@ list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 
 set (CMAKE_CXX_STANDARD 11)
 
-set  (project_SOURCES main.cpp videowidget.cpp mainwindow.cpp viewer.cpp interactor_style_actor.cpp)
-set  (project_HEADERS videowidget.h mainwindow.h viewer.h interactor_style_actor.h)
-set  (project_FORMS  videowidget.ui mainwindow.ui viewer.ui)
+set  (project_SOURCES main.cpp videowidget.cpp mainwindow.cpp viewer.cpp interactor_style_actor.cpp reconstruction.cpp)
+set  (project_HEADERS videowidget.h mainwindow.h viewer.h interactor_style_actor.h reconstruction.h)
+set  (project_FORMS  videowidget.ui mainwindow.ui viewer.ui reconstruction.ui)
 
 
 set(CMAKE_AUTOMOC ON)
