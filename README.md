@@ -7,3 +7,4 @@ Proyecto en version alpha de la aplicación para el procesado de imagenes obteni
     Medidas en objetos 3D, 
     Formulario para almacenamiento de datos
     
+# avionica
