@@ -4,6 +4,7 @@ project      (Avionicav2)
 find_package (Qt5Widgets REQUIRED)
 find_package(Qt5Multimedia REQUIRED)
 find_package(Qt5MultimediaWidgets REQUIRED)
+find_package(Qt5Sql REQUIRED)
 find_package (VTK REQUIRED)
 find_package (PCL 1.8 REQUIRED)
 
@@ -16,9 +17,9 @@ list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 
 set (CMAKE_CXX_STANDARD 11)
 
-set  (project_SOURCES main.cpp videowidget.cpp mainwindow.cpp viewer.cpp interactor_style_actor.cpp reconstruction.cpp)
-set  (project_HEADERS videowidget.h mainwindow.h viewer.h interactor_style_actor.h reconstruction.h)
-set  (project_FORMS  videowidget.ui mainwindow.ui viewer.ui reconstruction.ui)
+set  (project_SOURCES main.cpp videowidget.cpp mainwindow.cpp viewer.cpp interactor_style_actor.cpp reconstruction.cpp qdatabase.cpp helpviewer.cpp helperviewer2.cpp)
+set  (project_HEADERS videowidget.h mainwindow.h viewer.h interactor_style_actor.h reconstruction.h qdatabase.h helpviewer.h helperviewe2.h)
+set  (project_FORMS  videowidget.ui mainwindow.ui viewer.ui reconstruction.ui qdatabase.ui helpviewer.ui helperviewer2.ui)
 
 
 set(CMAKE_AUTOMOC ON)
@@ -36,4 +37,4 @@ ADD_EXECUTABLE  (Avionicav2 ${project_SOURCES}
                                 ${project_HEADERS_MOC} qrc.qrc)
 
                             TARGET_LINK_LIBRARIES (Avionicav2 ${QT_LIBRARIES} ${PCL_LIBRARIES})
-QT5_USE_MODULES (Avionicav2 Multimedia MultimediaWidgets)
+QT5_USE_MODULES (Avionicav2 Multimedia MultimediaWidgets Sql)

@@ -1,17 +1,6 @@
 #ifndef QDATABASE_H
 #define QDATABASE_H
-
-#include <QWidget>
-#include <QDebug>
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSql>
-#include <QtSql/QSqlDatabase>
-#include <iostream>
-#include <QApplication>
-#include <QtSql/QSqlRecord>
-#include <QTableWidgetItem>
-#include <QMessageBox>
-#include <QtSql/QSqlError>
+#include "common_includes.h"
 namespace Ui {
 class QDataBase;
 }
@@ -23,24 +12,28 @@ class QDataBase : public QWidget
 public:
     explicit QDataBase(QWidget *parent = 0);
     ~QDataBase();
-    void connections();
-    void refreshTable();
-    void initTable();
-    void initAttributes();
-    void clearForm();
+
+    void setPartner(QWidget* widget);
 
 private:
-    int idmax=0;
+   int idmax=0;
    int idElemento=-1;
-    Ui::QDataBase *ui;
-     QSqlDatabase db;
+   Ui::QDataBase *ui;
+   QSqlDatabase db;
+   QWidget* mPartner;
+private:
+      void connections();
+      void refreshTable();
+      void initTable();
+      void initAttributes();
+      void clearForm();
 private slots:
    void addElement();
    void deleteFirst();
    void deleteLast();
    void deleteSel();
-   void updateTable();
    void update(QTableWidgetItem* );
+   void showHome();
 
 };
 

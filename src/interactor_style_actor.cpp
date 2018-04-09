@@ -1,5 +1,7 @@
 #include "interactor_style_actor.h"
-
+/**
+ * Interactor basado en vtkInteractorStyleTracballActor
+ */
 vtkStandardNewMacro(interactor_style_actor);
 interactor_style_actor::interactor_style_actor()
 {

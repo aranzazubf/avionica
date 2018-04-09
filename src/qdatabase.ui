@@ -13,20 +13,14 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(48, 48, 48);</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_6">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,0">
-     <property name="topMargin">
-      <number>45</number>
-     </property>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
-       <property name="leftMargin">
-        <number>100</number>
-       </property>
-       <property name="rightMargin">
-        <number>100</number>
-       </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
         <widget class="QTableWidget" name="elements">
          <property name="minimumSize">
@@ -573,9 +567,6 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="sizeConstraint">
-          <enum>QLayout::SetFixedSize</enum>
-         </property>
          <item>
           <widget class="QPushButton" name="delete_first">
            <property name="sizePolicy">
@@ -1143,6 +1134,23 @@ color: rgb(255, 255, 255);</string>
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="back_2">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="qrc.qrc">
+             <normaloff>:/images/white/x48/home@3x.png</normaloff>:/images/white/x48/home@3x.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>72</width>
+             <height>72</height>
+            </size>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -1153,10 +1161,10 @@ color: rgb(255, 255, 255);</string>
         <number>0</number>
        </property>
        <property name="leftMargin">
-        <number>100</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>150</number>
+        <number>227</number>
        </property>
        <property name="bottomMargin">
         <number>100</number>
@@ -2253,6 +2261,8 @@ color: rgb(255, 255, 255);</string>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="qrc.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -1,7 +1,6 @@
 #ifndef HELPVIEWER_H
 #define HELPVIEWER_H
-
-#include <QDialog>
+#include "common_includes.h"
 
 namespace Ui {
 class HelpViewer;

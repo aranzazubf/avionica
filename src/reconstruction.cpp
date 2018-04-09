@@ -1,82 +1,64 @@
 #include "reconstruction.h"
 #include "../build/ui_reconstruction.h"
 
+/* Esta clase es la encargada de permitir la visualizacion de varios
+ * archivos ply como nubes de puntos a la vez y de el manejo de estos
+ * tanto de manera independiente en modo objeto como de forma conjunta
+ * manejando la escena entera. Así se pueden simular situaciones entre
+ * los diferentes objetos*/
+
+
+/*
+ * Inicializamos el constructor indicando el color del que se va a pintar
+ * la nube de puntos y la direccion que va a seguir el color, además de
+ * inicializar el objeto partner para poder volver a la pantalla principal
+ *
+ * Inicializa la nube de puntos, el visualizador pcl y el objeto HelpViewer
+ * para poder emitir luego el dialogo cuando se necesite consultar la confi-
+ * guracion
+ *
+ * Rellenamos la nube inicialmente con puntos aleatorios que se coloreraran
+ * como el arcoiris en la direccion y, lo ponemos asi por defecto se puede
+ * cambiar y la mostramos.
+ *
+ * Hacemos la llamada para conectar los elementos del formulario con sus slots
+ *
+ * inicializamos el modo de interaccion con el visualizador.
+ * */
 Reconstruction::Reconstruction(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Reconstruction),
-    filtering_axis_ (1), //y
-    color_mode_ (1),
-     mPartner(0)//rainbow
+    mPartner(0)
 {
     ui->setupUi(this);
+
     cloud_.reset(new PointCloudT);
+    viewer_.reset (new pcl::visualization::PCLVisualizer ("viewer", false));
+    v=new HelpViewer();
+
     fillCloud();
     colorCloudDistances ();
-    viewer_.reset (new pcl::visualization::PCLVisualizer ("viewer", false));
     showCloud();
-     ui->qvtkWidget->SetRenderWindow (viewer_->getRenderWindow ());
-     connections();
-     interactorInit();
+    //Necesitamos indicar que el qvtkwidget del formulario sera relleno con
+    //la venta del visualizador pcl
+    ui->qvtkWidget->SetRenderWindow (viewer_->getRenderWindow ());
+    connections();
+    interactorInit();
+
 }
 
-Reconstruction::~Reconstruction()
-{
-    delete ui;
-}
+/*
+ *Funcion que indica desde que clase se invoco esta
+*/
 void Reconstruction::setPartner(QWidget *partner){
 
     mPartner=partner;
-
-
-
 }
-void Reconstruction::showCloud(){
 
-  //  viewer_->createViewPort(0.0,1.0,1.0,1.0, v1);
-    viewer_->addText("3D", 10, 10, "v1 text", v1);
-    viewer_->addPointCloud<PointT> (cloud_,  "cloud1", v1);
-    viewer_->addCoordinateSystem (1.0,"axis1", v1);
-
-    nclouds++;
-}
-void Reconstruction::connections(){
-
-    connect( ui->camara, SIGNAL(clicked()), this, SLOT(loadInteractorCamera()));
-    connect(ui->actor, SIGNAL(clicked()), this, SLOT(loadInteractorActor()));
-    connect (ui->load, SIGNAL(clicked ()), this, SLOT(loadFileButtonPressed ()));
-    connect (ui->save, SIGNAL(clicked ()), this, SLOT(saveFileButtonPressed ()));
-    connect (ui->back, SIGNAL(clicked ()), this, SLOT(shootScreen()));
-    connect(ui->fullScreen, SIGNAL(clicked()), this, SLOT(showFullScreen()));
-    connect(ui->back_2, SIGNAL(clicked()), this, SLOT(showHome()));
-
-
-}
-void Reconstruction::showHome(){
-
-   // player->setMuted(true);
-
-    mPartner->show();
-
-
-    this->hide();
-}
-void Reconstruction::interactorInit(){
-    viewer_->setupInteractor (ui->qvtkWidget->GetInteractor (), ui->qvtkWidget->GetRenderWindow ());
-}
-void Reconstruction::loadInteractorActor() {
-
-
-    vtkSmartPointer<interactor_style_actor> style =
-        vtkSmartPointer<interactor_style_actor>::New();
-   viewer_->setupInteractor (ui->qvtkWidget->GetInteractor (), ui->qvtkWidget->GetRenderWindow (), style);
-}
-void Reconstruction::loadInteractorCamera() {
-
-
-
-    viewer_->setupInteractor (ui->qvtkWidget->GetInteractor (), ui->qvtkWidget->GetRenderWindow ());
-
-}
+/*
+ *Inicialmente se sube una nube de puntos generados aleatoriamente
+ * con la funcion rand()
+*/
 void Reconstruction::fillCloud(){
 
     cloud_->resize (500);
@@ -91,148 +73,113 @@ void Reconstruction::fillCloud(){
 
 }
 
+/*
+ * Se rellena la nube de puntos del color del arcoiris a lo largo del eje y
+ *  */
 void Reconstruction::colorCloudDistances ()
 {
-  // Find the minimum and maximum values along the selected axis
   double min, max;
-  // Set an initial value
-  switch (filtering_axis_)
-  {
-    case 0:  // x
-      min = cloud_->points[0].x;
-      max = cloud_->points[0].x;
-      break;
-    case 1:  // y
-      min = cloud_->points[0].y;
-      max = cloud_->points[0].y;
-      break;
-    default:  // z
-      min = cloud_->points[0].z;
-      max = cloud_->points[0].z;
-      break;
-  }
+   min = cloud_->points[0].y;
+   max = cloud_->points[0].y;
 
-  // Search for the minimum/maximum
   for (PointCloudT::iterator cloud_it = cloud_->begin (); cloud_it != cloud_->end (); ++cloud_it)
   {
-    switch (filtering_axis_)
-    {
-      case 0:  // x
-        if (min > cloud_it->x)
-          min = cloud_it->x;
-
-        if (max < cloud_it->x)
-          max = cloud_it->x;
-        break;
-      case 1:  // y
-        if (min > cloud_it->y)
-          min = cloud_it->y;
-
-        if (max < cloud_it->y)
-          max = cloud_it->y;
-        break;
-      default:  // z
-        if (min > cloud_it->z)
-          min = cloud_it->z;
-
-        if (max < cloud_it->z)
-          max = cloud_it->z;
-        break;
-    }
+      if (min > cloud_it->y)min = cloud_it->y;
+      if (max < cloud_it->y)max = cloud_it->y;
   }
-
-  // Compute LUT scaling to fit the full histogram spectrum
-  double lut_scale = 255.0 / (max - min);  // max is 255, min is 0
-
-  if (min == max)  // In case the cloud is flat on the chosen direction (x,y or z)
-    lut_scale = 1.0;  // Avoid rounding error in boost
-
+  double lut_scale = 255.0 / (max - min);
+  if (min == max)  lut_scale = 1.0;
   for (PointCloudT::iterator cloud_it = cloud_->begin (); cloud_it != cloud_->end (); ++cloud_it)
   {
     int value;
-    switch (filtering_axis_)
-    {
-      case 0:  // x
-        value = boost::math::iround ( (cloud_it->x - min) * lut_scale);  // Round the number to the closest integer
-        break;
-      case 1:  // y
         value = boost::math::iround ( (cloud_it->y - min) * lut_scale);
-        break;
-      default:  // z
-        value = boost::math::iround ( (cloud_it->z - min) * lut_scale);
-        break;
-    }
-
-    // Apply color to the cloud
-    switch (color_mode_)
-    {
-      case 0:
-        // Blue (= min) -> Red (= max)
-        cloud_it->r = value;
-        cloud_it->g = 0;
-        cloud_it->b = 255 - value;
-        break;
-      case 1:
-        // Green (= min) -> Magenta (= max)
         cloud_it->r = value;
         cloud_it->g = 255 - value;
         cloud_it->b = value;
-        break;
-      case 2:
-        // White (= min) -> Red (= max)
-        cloud_it->r = 255;
-        cloud_it->g = 255 - value;
-        cloud_it->b = 255 - value;
-        break;
-      case 3:
-        // Grey (< 128) / Red (> 128)
-        if (value > 128)
-        {
-          cloud_it->r = 255;
-          cloud_it->g = 0;
-          cloud_it->b = 0;
-        }
-        else
-        {
-          cloud_it->r = 128;
-          cloud_it->g = 128;
-          cloud_it->b = 128;
-        }
-        break;
-      default:
-        // Blue -> Green -> Red (~ rainbow)
-        cloud_it->r = value > 128 ? (value - 128) * 2 : 0;  // r[128] = 0, r[255] = 255
-        cloud_it->g = value < 128 ? 2 * value : 255 - ( (value - 128) * 2);  // g[0] = 0, g[128] = 255, g[255] = 0
-        cloud_it->b = value < 128 ? 255 - (2 * value) : 0;  // b[0] = 255, b[128] = 0
-    }
-  }}
-  void Reconstruction::shootScreen(){
-        originalPixmap = QPixmap::grabWindow(QApplication::desktop()->winId());
-        saveScreenshot();
   }
-  void Reconstruction::showFullScreen(){
-      if(this->isFullScreen()) {
-          //viewer_->setFullScreen(false);
-          this->setWindowState(Qt::WindowMaximized);
-      }
-      else{
-          this->setWindowState(Qt::WindowFullScreen);
-          //viewer_->setFullScreen 	( 	true	);
-      }
+}
 
-  }
-  void Reconstruction::loadFileButtonPressed (){
-    // You might want to change "/home/" if you're not on an *nix platform
-    QString filename = QFileDialog::getOpenFileName (this, tr ("Open point cloud"), "/home/", tr ("Point cloud data (*.pcd *.ply)"));
-            PCL_INFO("File chosen: %s\n", filename.toStdString ().c_str ());
-    PointCloudT::Ptr cloud_tmp (new PointCloudT);
-    PointCloudT::Ptr cloud_filtered (new PointCloudT);
-    PointCloudT::Ptr cloud_aux (new PointCloudT);
-    PointCloudI::Ptr cloud_bi (new PointCloudI);
-   PointCloudI::Ptr cloud_bi_filt (new PointCloudI);
-    if (filename.isEmpty ()) return;
+/* Añade la nube de puntos inicial al visor y le
+ * añade un sistema de coordenadas
+ */
+void Reconstruction::showCloud(){
+    viewer_->addText("3D", 10, 10, "v1 text", v1);
+    viewer_->addPointCloud<PointT> (cloud_,  "cloud1", v1);
+    viewer_->addCoordinateSystem (1.0,"axis1", v1);
+    nclouds++;
+}
+
+/*Conecta los elementos del formulario con sus respectivos slots.*/
+void Reconstruction::connections(){
+    connect(ui->camara, SIGNAL(clicked()), this, SLOT(loadInteractorCamera()));
+    connect(ui->actor, SIGNAL(clicked()), this, SLOT(loadInteractorActor()));
+    connect(ui->back_2, SIGNAL(clicked()), this, SLOT(showHome()));
+    connect(ui->load, SIGNAL(clicked ()), this, SLOT(loadFileButtonPressed ()));
+    connect(ui->save, SIGNAL(clicked ()), this, SLOT(saveFileButtonPressed ()));
+    connect(ui->back, SIGNAL(clicked ()), this, SLOT(shootScreen()));
+    connect(ui->fullScreen, SIGNAL(clicked()), this, SLOT(showFullScreen()));
+    connect(ui->help, SIGNAL(clicked()),this, SLOT(showHelp()));
+}
+
+/* Inicializa el modo de interaccion como modo camara (es el modo por defecto
+ * por eso no le pasa el parametro interactor_style)
+ * */
+void Reconstruction::interactorInit(){
+    viewer_->setupInteractor (ui->qvtkWidget->GetInteractor (), ui->qvtkWidget->GetRenderWindow ());
+}
+
+/* Invoca al dialogo que muestra los controles disponibles para cada tipo
+ * de modo de interaccion: actor o camara
+*/
+void Reconstruction::showHelp(){
+ v->show();
+}
+
+/* Para activar el modo actor, se usa un puntero a la clase interactor_style_actor
+ * que extiende de la clase vtkInteractorStyleTrackballActor en la cual estan
+ * definidos los controles.
+ * */
+void Reconstruction::loadInteractorActor() {
+
+   vtkSmartPointer<interactor_style_actor> style = vtkSmartPointer<interactor_style_actor>::New();
+   viewer_->setupInteractor (ui->qvtkWidget->GetInteractor (), ui->qvtkWidget->GetRenderWindow (), style);
+}
+
+/*
+ * Activar el modo camara al hacer click en el boton
+ * */
+void Reconstruction::loadInteractorCamera() {
+    viewer_->setupInteractor (ui->qvtkWidget->GetInteractor (), ui->qvtkWidget->GetRenderWindow ());
+
+}
+/*
+ *Vuelta a la pantalla principal
+ * */
+void Reconstruction::showHome(){
+
+    mPartner->show();
+    this->hide();
+}
+
+/*
+ * Carga archivos PCD o PLY pero ojo porque lo hace desde el directorio /home/
+ * si no se esta en un sistema UNIX hay que adaptarlo
+ *
+ * Una vez que carga el archivo lo pasa por varios filtros para mejorar
+ * la visualización y la interacción con la nube de puntos que se genera.
+ *
+ * */
+void Reconstruction::loadFileButtonPressed (){
 
     int return_status;
+    QString filename;
+
+    cloud_tmp.reset(new PointCloudT);
+    cloud_aux.reset(new PointCloudT);
+
+    filename= QFileDialog::getOpenFileName (this, tr ("Open point cloud"), "/home/", tr ("Point cloud data (*.pcd *.ply)"));
+    PCL_INFO("File chosen: %s\n", filename.toStdString ().c_str ());
+    if (filename.isEmpty ()) return;
     if (filename.endsWith (".pcd", Qt::CaseInsensitive))
       return_status = pcl::io::loadPCDFile (filename.toStdString (), *cloud_tmp);
     else
@@ -243,69 +190,72 @@ void Reconstruction::colorCloudDistances ()
       PCL_ERROR("Error reading point cloud %s\n", filename.toStdString ().c_str ());
       return;
     }
+    removeNan();
+    filterVoxel();
+    updateCloud();
 
-  /*
-   *FILTER: REMOVENANFROMPOINTCLOUD
-  */
-    if (cloud_tmp->is_dense)
-      pcl::copyPointCloud (*cloud_tmp, *cloud_);
-    else
+
+  }
+
+/*Filtro para eliminar puntos nulos
+ *
+ * */
+void Reconstruction::removeNan(){
+    if (!cloud_tmp->is_dense)
+
     {
       PCL_WARN("Cloud is not dense! Non finite points will be removed\n");
       std::vector<int> vec;
-      pcl::removeNaNFromPointCloud (*cloud_tmp, *cloud_, vec);
+      pcl::removeNaNFromPointCloud (*cloud_tmp, *cloud_tmp, vec);
     }
 
-    /*
-     * FILTER VOXELGRID
-     * */
-  fVoxelGrid(50);
-   pcl::copyPointCloud (*cloud_,*cloud_aux);
-    pcl::VoxelGrid<PointT> sor;
-     sor.setInputCloud (cloud_);
-     sor.setLeafSize (0.5f, 0.5f, 0.5f);
-     sor.filter (*cloud_filtered);
-     pcl::copyPointCloud (*cloud_filtered, *cloud_);
 
-    colorCloudDistances ();
-    viewer_->removeAllShapes();
-    if(nclouds==1){
-    viewer_->updatePointCloud (cloud_, "cloud1");
-    nclouds++;
-    }
-    if(nclouds>1){
-    nclouds++;
-    char idcloud[512];
-    sprintf (idcloud, "cloud#%03d", nclouds);
+}
 
-    viewer_->addPointCloud(cloud_,idcloud,v1);
-    }
-     pcl::copyPointCloud (*cloud_aux, *cloud_);
-    viewer_->resetCamera ();
-    ui->qvtkWidget->update ();
-  }
+/* Este filtro diezma la nube de puntos para
+ * un mejor manejo de la misma
+ * */
+void Reconstruction::filterVoxel(){
+    pcl::copyPointCloud (*cloud_tmp,*cloud_aux);
+     pcl::VoxelGrid<PointT> sor;
+      sor.setInputCloud (cloud_tmp);
+      sor.setLeafSize (0.5f, 0.5f, 0.5f);
+      sor.filter (*cloud_tmp);
+}
 
-  void Reconstruction::saveScreenshot(){
-      //Viewer* v;
-      QString format = "png";
+/*Una vez realizado los cambios en la nube de puntos generada a partir del archivo ply o pcd
+ * se colorea esta nueva nube y se añade o se actualiza
+ * */
+void Reconstruction::updateCloud(){
 
-         QString initialPath = QDir::currentPath() + tr("/untitled.") + format;
+    pcl::copyPointCloud (*cloud_tmp, *cloud_);
 
-  //QString fileName = QFileDialog::getSaveFileName(this, tr ("Save As"),
-               //                                   "/home/",
-                 //                                 tr ("(*.png)"));
+   colorCloudDistances ();
+   viewer_->removeAllShapes();
+   if(nclouds==1){
+   viewer_->updatePointCloud (cloud_, "cloud1");
+   nclouds++;
+   }
+   if(nclouds>1){
+   nclouds++;
+   char idcloud[512];
+   sprintf (idcloud, "cloud#%03d", nclouds);
 
-  QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
-                             initialPath,
-                             tr("%1 Files (*.%2);;All Files (*)")
-                             .arg(QString(format.toUpper()))
-                             .arg(QString(format)));
+   viewer_->addPointCloud(cloud_,idcloud,v1);
+   }
+    pcl::copyPointCloud (*cloud_aux, *cloud_);
+   viewer_->resetCamera ();
+   ui->qvtkWidget->update ();
 
-         if (!fileName.isEmpty())
-             originalPixmap.save(fileName, format.toLatin1());
+}
 
 
-  }
+
+  /*
+   * Guarda la nube de puntos que este disponible en el visor en ese momento
+   * */
+
+
   void Reconstruction::saveFileButtonPressed (){
     // You might want to change "/home/" if you're not on an *nix platform
     QString filename = QFileDialog::getSaveFileName(this, tr ("Open point cloud"), "/home/", tr ("Point cloud data (*.pcd *.ply)"));
@@ -316,43 +266,49 @@ void Reconstruction::colorCloudDistances ()
       return;
 
     int return_status;
-    if (filename.endsWith (".pcd", Qt::CaseInsensitive))
-      return_status = pcl::io::savePCDFileBinary (filename.toStdString (), *cloud_);
-    else if (filename.endsWith (".ply", Qt::CaseInsensitive))
-      return_status = pcl::io::savePLYFileBinary (filename.toStdString (), *cloud_);
+    if (filename.endsWith (".pcd", Qt::CaseInsensitive)) return_status = pcl::io::savePCDFileBinary (filename.toStdString (), *cloud_);
+    else if (filename.endsWith (".ply", Qt::CaseInsensitive))return_status = pcl::io::savePLYFileBinary (filename.toStdString (), *cloud_);
     else
     {
       filename.append(".ply");
       return_status = pcl::io::savePLYFileBinary (filename.toStdString (), *cloud_);
     }
-
     if (return_status != 0)
     {
       PCL_ERROR("Error writing point cloud %s\n", filename.toStdString ().c_str ());
       return;
     }
   }
-  /*FILTRADO PCL*/
-  void Reconstruction::fVoxelGrid(int value){
-  PointCloudT::Ptr cloud_filtered (new PointCloudT);
-  PointCloudT::Ptr cloud_aux (new PointCloudT);
 
-   pcl::copyPointCloud (*cloud_,*cloud_aux);
-      pcl::VoxelGrid<PointT> sor;
-       sor.setInputCloud (cloud_);
-       float realvalue=0.01*value;
-       sor.setLeafSize (realvalue,realvalue,realvalue);
-       sor.filter (*cloud_filtered);
-     pcl::copyPointCloud (*cloud_filtered, *cloud_);
+ /*
+  * Graba la pantalla actual
+  * */
+  void Reconstruction::shootScreen(){
+        originalPixmap = QPixmap::grabWindow(QApplication::desktop()->winId());
+        saveScreenshot();
+  }
+  /* Guarda una captura de pantalla de la aplicacion
+   *
+   * */
+    void Reconstruction::saveScreenshot(){
 
-     colorCloudDistances ();
-      viewer_->updatePointCloud (cloud_, "cloud");
-       pcl::copyPointCloud (*cloud_aux, *cloud_);
+    QString format = "png";
+    QString initialPath = QDir::currentPath() + tr("/untitled.") + format;
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
+                               initialPath,
+                               tr("%1 Files (*.%2);;All Files (*)")
+                               .arg(QString(format.toUpper()))
+                               .arg(QString(format)));
+    if (!fileName.isEmpty())originalPixmap.save(fileName, format.toLatin1());
+   }
 
-
-      ui->qvtkWidget->update ();
-
-
-
+  /* Pantalla completa
+   * */
+  void Reconstruction::showFullScreen(){
+      if(this->isFullScreen())this->setWindowState(Qt::WindowMaximized);
+      else(this->setWindowState(Qt::WindowFullScreen));
   }
 
+  Reconstruction::~Reconstruction() {
+      delete ui;
+  }

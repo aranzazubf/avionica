@@ -1,0 +1,4 @@
+/home/arabar/Qt_Projects/Avionicav2/build/CMakeFiles/edit_cache.dir
+/home/arabar/Qt_Projects/Avionicav2/build/CMakeFiles/rebuild_cache.dir
+/home/arabar/Qt_Projects/Avionicav2/build/CMakeFiles/Avionicav2.dir
+/home/arabar/Qt_Projects/Avionicav2/build/CMakeFiles/Avionicav2_automoc.dir
